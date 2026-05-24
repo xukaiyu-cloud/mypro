@@ -65,6 +65,25 @@ export const useListenStore = defineStore('listen', () => {
     const user = useAuthStore().userInfo
     if (!user) return
 
+    // Remove all previous room listeners to prevent duplicate message handling
+    socket.off('connect')
+    socket.off('registered')
+    socket.off('room:created')
+    socket.off('room:joined')
+    socket.off('room:memberJoined')
+    socket.off('room:memberLeft')
+    socket.off('room:memberKicked')
+    socket.off('room:kicked')
+    socket.off('room:hostChanged')
+    socket.off('room:invitation')
+    socket.off('room:inviteResult')
+    socket.off('room:sync')
+    socket.off('room:chat')
+    socket.off('room:playlistUpdated')
+    socket.off('room:list')
+    socket.off('friends:online')
+    socket.off('room:error')
+
     socket.on('connect', () => {
       connected.value = true
       socket.emit('register', { userId: user.id })
@@ -201,9 +220,19 @@ export const useListenStore = defineStore('listen', () => {
   }
 
   function disconnect() {
+    const s = getSocket()
+    if (s) {
+      s.off('connect'); s.off('registered'); s.off('room:created'); s.off('room:joined')
+      s.off('room:memberJoined'); s.off('room:memberLeft'); s.off('room:memberKicked')
+      s.off('room:kicked'); s.off('room:hostChanged'); s.off('room:invitation')
+      s.off('room:inviteResult'); s.off('room:sync'); s.off('room:chat')
+      s.off('room:playlistUpdated'); s.off('room:list'); s.off('friends:online')
+      s.off('room:error')
+    }
     disconnectSocket()
     connected.value = false
     currentRoom.value = null
+    messages.value = []
   }
 
   // ---- Actions ----

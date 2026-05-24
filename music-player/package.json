@@ -7,7 +7,51 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "pack": "electron-vite build && electron-builder --dir",
+    "dist": "electron-vite build && electron-builder",
+    "dist:win": "electron-vite build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.musicplayer.app",
+    "productName": "音乐播放器",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "server/**/*",
+      "!server/node_modules",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "server",
+        "to": "server"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "resources/icon.icns"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "resources/icon.png"
+    }
   },
   "dependencies": {
     "axios": "^1.7.0",
@@ -23,6 +67,7 @@
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.1.0",
     "electron": "^31.0.0",
+    "electron-builder": "^25.1.0",
     "electron-vite": "^3.1.0",
     "sass": "^1.80.0",
     "typescript": "^5.6.0",

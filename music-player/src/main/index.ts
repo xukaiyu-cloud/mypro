@@ -1,5 +1,32 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
+import { spawn, ChildProcess } from 'child_process'
+
+let serverProcess: ChildProcess | null = null
+
+function startServer(): void {
+  const isDev = !!process.env.ELECTRON_RENDERER_URL
+  if (isDev) return // Server runs separately in dev mode
+
+  const serverDir = join(__dirname, '../../server')
+  const serverEntry = join(serverDir, 'src/index.ts')
+  
+  try {
+    serverProcess = spawn('node', [
+      '--import', 'tsx',
+      serverEntry
+    ], {
+      cwd: serverDir,
+      env: { ...process.env, PORT: '3000' },
+      stdio: 'pipe',
+    })
+    serverProcess.stdout?.on('data', (d) => console.log('[server]', d.toString().trim()))
+    serverProcess.stderr?.on('data', (d) => console.error('[server]', d.toString().trim()))
+    serverProcess.on('exit', (code) => console.log('[server] exited with code', code))
+  } catch (e) {
+    console.error('Failed to start server:', e)
+  }
+}
 import { registerFileIpc } from './ipc/file'
 
 let mainWindow: BrowserWindow | null = null
@@ -28,6 +55,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  startServer()
   Menu.setApplicationMenu(null)
   registerFileIpc()
   ipcMain.handle('get-version', () => app.getVersion())
@@ -43,6 +71,10 @@ app.whenReady().then(() => {
   ipcMain.on('window:close', () => mainWindow?.close())
 
   createWindow()
+})
+
+app.on('before-quit', () => {
+  if (serverProcess) { serverProcess.kill(); serverProcess = null }
 })
 
 app.on('window-all-closed', () => {
