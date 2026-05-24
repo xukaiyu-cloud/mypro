@@ -1,0 +1,754 @@
+
+================================================================================
+              桌面端音乐播放器与在线歌单服务 — 系统设计文稿（最终版）
+================================================================================
+
+1. 项目概述
+============
+
+1.1 项目名称
+    桌面端音乐播放器与在线歌单服务
+
+1.2 项目背景
+    随着数字音乐平台的发展，用户对于本地音乐管理、跨平台歌单同步、多终端协同以及
+    社交化听歌的需求不断增长。
+
+    传统本地播放器缺乏：云端同步、多平台歌单导入、社交协同、实时同步播放能力。
+    在线音乐平台在：本地音乐统一管理、离线播放、自定义导入、多平台兼容方面受限。
+
+    因此，本项目设计并实现一个支持本地音乐播放、在线歌单同步、多平台歌单导入、
+    好友协同听歌、实时同步播放的桌面端音乐播放器系统。
+
+1.3 项目目标
+    - 提供稳定流畅的本地音乐播放体验
+    - 支持在线歌单同步与管理
+    - 支持多平台歌单导入（网易云音乐、酷狗音乐等）
+    - 提供好友社交与协同听歌功能
+    - 构建可扩展、易维护、高性能的系统架构
+
+
+2. 需求分析
+============
+
+2.1 功能需求
+
+    2.1.1 本地播放功能
+        - 本地音乐导入与播放队列管理
+        - 播放 / 暂停 / 上一首 / 下一首
+        - 播放进度拖动与音量调节
+        - 播放模式切换（顺序 / 单曲循环 / 列表循环 / 随机）
+        - LRC 歌词实时解析与同步滚动
+        - 沉浸式播放界面（全屏封面 + 歌词展示）
+        - 歌曲封面展示与歌曲信息展示
+
+    2.1.2 在线歌单同步功能
+        - 用户注册 / 登录 / 退出
+        - 在线歌单 CRUD（创建 / 编辑 / 删除）
+        - 本地歌单上传 / 云端歌单下载
+        - 增量同步与冲突处理
+
+    2.1.3 多平台歌单导入功能
+        支持三种导入方式：
+        - 文件导入：上传 CSV / JSON / TXT 格式文件
+        - 链接导入：粘贴网易云音乐、酷狗音乐等平台歌单链接，自动解析
+        - 文本粘贴：直接粘贴歌曲列表文本，智能识别分隔符
+        功能包括：自动解析歌曲信息、字段统一映射、导入预览、查重、失败提示
+
+    2.1.4 好友社交功能
+        - 搜索用户 / 添加好友 / 删除好友
+        - 好友申请接收与处理
+        - 好友在线状态实时推送
+
+    2.1.5 协同听歌功能
+        - 创建同步听歌房间（6 位房间号）
+        - 邀请好友加入房间
+        - 实时同步：播放 / 暂停 / 切歌 / 进度
+        - 房间成员管理与踢人
+        - 房主控制模式（房主操作，成员同步）
+        - 房间内文字聊天
+        - 房间歌单管理（添加 / 移除）
+
+    2.1.6 辅助功能
+        - 本地歌曲搜索 / 歌单搜索
+        - 收藏功能 / 最近播放 / 播放历史
+        - 用户设置（主题、播放偏好等）
+        - 缓存管理
+
+2.2 非功能需求
+    2.2.1 性能需求
+        - 播放控制响应时间 < 100ms
+        - 歌单同步接口平均响应 < 500ms
+        - WebSocket 延迟控制在 100ms 内
+        - 1000 首歌曲导入采用批量处理
+        - 歌曲列表支持虚拟滚动
+        - 下一首歌曲预加载
+
+    2.2.2 安全需求
+        - 密码 BCrypt 加密存储
+        - JWT Token 身份认证
+        - WebSocket Token 鉴权
+        - 路由守卫拦截未授权访问
+
+    2.2.3 可扩展性需求
+        支持后续扩展：歌词同步引擎、推荐系统、评论系统、多人房间扩展、
+        在线聊天室、AI 推荐歌单
+
+    2.2.4 可用性需求
+        - 界面简洁直观（毛玻璃风格 + 暗色主题）
+        - 操作流程明确，异常提示友好
+        - 导入失败可追踪原因
+
+
+3. 系统总体设计
+================
+
+3.1 系统架构
+    采用四层架构：桌面客户端 + 后端服务 + 数据存储 + WebSocket 实时通信
+
+    3.1.1 桌面客户端层（Electron + Vue 3 + TypeScript）
+          Electron 主进程：窗口管理、托盘控制、IPC 通信
+          Vue 3 渲染进程：UI 展示、用户交互、Pinia 状态管理、Vue Router 路由
+          职责：音乐播放控制、本地数据缓存、WebSocket 通信、歌词展示
+
+    3.1.2 后端服务层（Node.js + Express + TypeScript）
+          职责：用户认证、歌单管理、同步服务、好友系统、实时听歌服务、
+                导入解析（含网易云 API 逆向）
+
+    3.1.3 数据存储层
+          本地：SQLite（sql.js 纯 JS 实现，零安装依赖）
+              职责：用户数据、歌曲数据、歌单、播放历史、好友关系
+          云端：MySQL（已预留接口，可切换）
+          缓存：Redis（ioredis，可独立启用）
+
+    3.1.4 WebSocket 通信层（Socket.IO）
+          职责：实时播放同步、好友邀请推送、在线状态广播、房间事件
+
+3.2 前端模块架构
+
+    ┌─────────────────────────────────────────────────────────┐
+    │                     Electron 主进程                       │
+    │              窗口管理 | IPC 桥接 | 系统集成                │
+    └──────────────────────┬──────────────────────────────────┘
+                           │ preload 桥接层
+    ┌──────────────────────▼──────────────────────────────────┐
+    │                   Vue 3 渲染进程                          │
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │                   路由层 (Vue Router)                ││
+    │  │  登录 | 注册 | 播放队列 | 歌单详情 | 同步 |          ││
+    │  │  好友 | 协同听歌 | 导入 | 搜索 | 收藏 | 历史 |      ││
+    │  │  设置 | 沉浸式播放 | 关于                            ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              状态管理层 (Pinia Stores)               ││
+    │  │  auth | player | friends | listen | playlist | sync  ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              业务逻辑层 (Composables)                ││
+    │  │  useAudio (音频引擎) | useAudioPreload (预加载)       ││
+    │  │  useLyrics (歌词解析滚动)                             ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              通信层                                  ││
+    │  │  Axios (REST API) | Socket.IO Client (WebSocket)     ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              UI 层 (Element Plus + 毛玻璃样式)       ││
+    │  │  17 个可复用组件 | 14 个页面 | 4 个布局组件          ││
+    │  └─────────────────────────────────────────────────────┘│
+    └─────────────────────────────────────────────────────────┘
+
+3.3 后端模块架构
+
+    ┌─────────────────────────────────────────────────────────┐
+    │                  Express 服务 (port 3000)                 │
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              中间件层                                ││
+    │  │  CORS | JSON Body Parser | JWT Auth Middleware       ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              REST API 路由                           ││
+    │  │  /api/auth (认证)    /api/playlists (歌单)           ││
+    │  │  /api/sync (同步)    /api/import (导入)              ││
+    │  │  /api/play (播放)    /api/friends (好友)             ││
+    │  │  /api/listen (协同)                                   ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              服务层                                  ││
+    │  │  ncm.ts (网易云 API weapi 加解密 + 歌曲/歌词获取)     ││
+    │  │  db.ts (SQLite ORM) | cache.ts (Redis)               ││
+    │  │  ws.ts (Socket.IO 事件处理)                           ││
+    │  └─────────────────────────────────────────────────────┘│
+    │  ┌─────────────────────────────────────────────────────┐│
+    │  │              WebSocket 服务 (Socket.IO)               ││
+    │  │  房间生命周期 | 播放同步 | 邀请机制 | 状态广播        ││
+    │  └─────────────────────────────────────────────────────┘│
+    └─────────────────────────────────────────────────────────┘
+
+
+4. 核心功能详细设计
+====================
+
+4.1 本地音频播放引擎
+
+    4.1.1 架构设计
+        使用 HTML5 Audio 作为底层播放引擎，通过 useAudio composable 封装。
+        播放器状态由 Pinia player store 统一管理，实现 UI 与音频控制分离。
+
+    4.1.2 播放状态机 (player store)
+        状态：playlist (播放队列) | currentIndex | isPlaying
+              currentTime | duration | volume | playMode
+        操作：play / pause / resume / next / prev / seekTo / setVolume / setPlayMode
+        播放模式：list-loop (列表循环) | single-loop (单曲循环) | shuffle (随机)
+
+    4.1.3 音频预加载
+        useAudioPreload composable 在播放队列中提前加载下一首歌曲的音频资源，
+        减少切歌等待时间。
+
+    4.1.4 URL 解析策略
+        播放歌曲时，按优先级尝试获取播放链接：
+        (1) 本地文件：转换为 file:// 协议
+        (2) 已缓存的 audioUrl
+        (3) 在线平台 API 解析（网易云 weapi / 酷狗 API / HTML 解析）
+
+4.2 歌词系统
+
+    4.2.1 LRC 解析
+        支持标准 LRC 格式，精确解析到毫秒级：[mm:ss.xx] 或 [mm:ss]
+        使用 parseLRC() 将原始 LRC 文本解析为 LyricLine[] ({ time, text })
+
+    4.2.2 实时高亮与滚动
+        通过 useLyrics composable 将播放时间流与歌词时间轴对齐，
+        使用 findActiveLine() 二分查找当前歌词行。
+        滚动策略：
+        - watch 监听 activeLine 变化，nextTick 后调用 scrollIntoView
+        - 歌词容器采用 mask-image 渐变遮罩，营造沉浸式视觉效果
+        - 高点行使用较大字号 + 高亮色 + 加粗字体
+
+    4.2.3 歌词获取
+        异步拉取，不阻塞播放：
+        - 本地歌曲：通过 filePath 请求后端 /api/play/lyrics
+        - 在线歌曲：网易云 weapi 获取歌词
+        - 获取失败：显示"暂无歌词"
+
+    4.2.4 协同听歌中的歌词
+        - 房主：歌词加载完成后通过 watch 自动同步到房间状态
+        - 成员：接收 room:sync 事件更新房间歌词
+
+4.3 歌单导入系统
+
+    4.3.1 导入方式
+
+        (A) 文件导入 (POST /api/import/file)
+            - 使用 multer 中间件接收文件上传（最大 10MB）
+            - 支持 CSV / JSON / TXT 格式自动识别
+            - 智能分割符检测（逗号 / 连字符 / 制表符）
+
+        (B) 链接导入 (POST /api/import/link)
+            - 自动检测平台：网易云 music.163.com / 酷狗 kugou.com / QQ 音乐
+            - 网易云：解析 playlist?id=xxx，调用 weapi 加密接口获取完整歌单
+            - 酷狗：支持短链接解析链 + mobilecdn API 获取歌单
+            - 其他：HTML 页面解析（JSON 内嵌数据 > DOM 元素 > 文本提取）
+
+        (C) 文本粘贴 (POST /api/import/text)
+            - 接受任意文本输入，按行解析
+            - 自动识别 "歌曲名 - 歌手 - 专辑" 格式
+            - 支持 "歌曲名, 歌手, 专辑, 时长" CSV 格式
+
+    4.3.2 导入流程
+        前端 → 选择导入方式 → 预览解析结果 → 用户确认 → 批量写入数据库
+
+    4.3.3 性能优化
+        - 大文件使用 multer memoryStorage（内存缓冲，单次处理）
+        - 批量 INSERT（非逐条插入）
+        - 导入失败回显具体错误信息
+
+4.4 好友系统
+
+    4.4.1 数据模型
+        friends 表：user_id | friend_id | status (pending / accepted) | created_at
+
+    4.4.2 业务流程
+        添加好友：搜索用户名 → 发送申请 → 目标用户接收通知 → 接受/拒绝
+        好友列表：显示所有已接受的好友及其在线状态
+
+    4.4.3 在线状态
+        - 用户连接 WebSocket 时注册 userId
+        - userSockets Map 维护 userId → Set<socketId> 映射
+        - 客户端按需查询在线好友列表 (friends:online 事件)
+
+4.5 协同听歌系统（核心功能）
+
+    4.5.1 房间生命周期
+
+        创建房间
+        ┌──────┐  room:create  ┌─────────┐  room:created  ┌──────┐
+        │ 房主  │ ────────────→ │ 服务器   │ ────────────→ │ 房主  │
+        └──────┘               │(生成6位  │               └──────┘
+                               │ 房间号)  │
+                               └─────────┘
+
+        加入房间
+        ┌──────┐  room:join    ┌─────────┐  room:joined   ┌──────┐
+        │ 成员  │ ──────────→  │ 服务器   │ ────────────→ │ 成员  │
+        └──────┘               │(校验房间)│  room:member   ┌──────┐
+                               └─────────┘  Joined → 广播 │ 其他  │
+                                                        └──────┘
+        邀请好友
+        ┌──────┐ room:invite   ┌─────────┐ room:invitation ┌──────┐
+        │ 房主  │ ──────────→  │ 服务器   │ ──────────────→│ 目标  │
+        └──────┘               │(检查在线)│                 │ 用户  │
+                               └─────────┘                 └──────┘
+
+        离开房间
+        房主离开 → 自动转移房主给第一个成员
+        最后成员离开 → 销毁房间
+
+    4.5.2 播放同步协议
+
+        房主控制模式：只有房主可以控制播放，成员被动同步。
+
+        同步事件类型：
+        - changeSong : 房主切歌时触发，携带完整歌曲信息（含歌词）
+        - play/pause : 房主播放/暂停时触发
+        - seek : 房主拖动进度条时触发（节流 2 秒）
+
+        同步数据格式：
+        {
+          roomId, userId, action,
+          song: { title, artist, album, coverUrl, duration, sourceUrl, sourcePlatform, lyrics },
+          currentTime: number,
+          isPlaying: boolean
+        }
+
+    4.5.3 时间校准机制
+        - 同步事件携带 currentTime，接收方调用 player.seekTo() 校准本地时间
+        - 成员本地音频 timeupdate 事件驱动播放时间推进
+        - 同步事件周期性覆盖本地时间，消除累积误差
+
+    4.5.4 房主转移
+        房主离开时，第一个剩余成员自动成为新房主。
+        广播 room:hostChanged 通知全体成员。
+
+    4.5.5 房间聊天
+        通过 room:chat 事件在房间内广播文字消息，不持久化。
+
+    4.5.6 心跳检测
+        Socket.IO 内置心跳机制，断线自动重连。
+        重连后重新注册 userId + 房间状态恢复。
+
+
+5. 数据库设计
+==============
+
+5.1 本地数据库 (SQLite)
+
+    数据库文件：server/data/music.db
+    引擎：sql.js (纯 JavaScript 实现，无需原生依赖)
+
+    建表语句（实际代码中创建）：
+
+    CREATE TABLE IF NOT EXISTS user (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        email TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS song (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        artist TEXT NOT NULL DEFAULT '',
+        album TEXT NOT NULL DEFAULT '',
+        duration INTEGER NOT NULL DEFAULT 0,
+        file_path TEXT NOT NULL DEFAULT '',
+        cover_url TEXT NOT NULL DEFAULT '',
+        source_platform TEXT DEFAULT '',
+        external_link TEXT DEFAULT ''
+    );
+
+    CREATE TABLE IF NOT EXISTS playlist (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        source_type TEXT DEFAULT 'local',
+        updated_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES user(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS playlist_song (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        playlist_id INTEGER NOT NULL,
+        song_id INTEGER NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        added_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (playlist_id) REFERENCES playlist(id),
+        FOREIGN KEY (song_id) REFERENCES song(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS play_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        song_id INTEGER NOT NULL,
+        play_time TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES user(id),
+        FOREIGN KEY (song_id) REFERENCES song(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS friends (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        friend_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES user(id),
+        FOREIGN KEY (friend_id) REFERENCES user(id)
+    );
+
+    索引设计：
+    CREATE INDEX IF NOT EXISTS idx_playlist_user ON playlist(user_id);
+    CREATE INDEX IF NOT EXISTS idx_ps_playlist ON playlist_song(playlist_id);
+    CREATE INDEX IF NOT EXISTS idx_ps_song ON playlist_song(song_id);
+    CREATE INDEX IF NOT EXISTS idx_ph_user ON play_history(user_id);
+    CREATE INDEX IF NOT EXISTS idx_fr_user ON friends(user_id);
+    CREATE INDEX IF NOT EXISTS idx_fr_friend ON friends(friend_id);
+
+    持久化策略：
+    每次写操作后立即调用 db.export() + writeFileSync() 将整个数据库
+    序列化到磁盘。通过 getDb() / queryAll() / queryOne() / execute()
+    封装统一的 CRUD 接口。
+
+5.2 云端数据库 (MySQL，预留)
+
+    CREATE DATABASE IF NOT EXISTS music_player;
+    -- 表结构与 SQLite 一致，计划在部署模式切换
+    -- 连接配置通过环境变量管理
+
+5.3 缓存层 (Redis，预留)
+
+    缓存策略：
+    - 热门歌单（TTL: 600s）
+    - 用户信息（TTL: 300s）
+    - 高频搜索结果（TTL: 120s）
+    通过 ioredis 连接，initCache() 初始化。
+
+
+6. 接口设计
+============
+
+6.1 用户接口 (/api)
+    POST   /api/register        用户注册 { username, password, email }
+    POST   /api/login           用户登录 { username, password } → JWT Token
+    POST   /api/logout          用户登出
+    GET    /api/user/profile   获取用户信息 [需 JWT]
+
+6.2 歌单接口 (/api/playlists)
+    GET    /api/playlists              获取歌单列表
+    POST   /api/playlists              创建歌单 { name, description, source_type }
+    PUT    /api/playlists/:id          更新歌单
+    DELETE /api/playlists/:id          删除歌单
+    GET    /api/playlists/:id/songs    获取歌单内歌曲
+
+6.3 导入接口 (/api/import)
+    POST   /api/import/file            文件导入（multipart/form-data）
+    POST   /api/import/link            链接导入 { url, platform? }
+    POST   /api/import/text            文本导入 { text }
+
+6.4 播放接口 (/api/play)
+    POST   /api/play/resolve           解析播放链接 { hash, albumId, sourcePlatform }
+    POST   /api/play/lyrics            获取歌词 { hash, sourcePlatform }
+
+6.5 好友接口 (/api/friends)
+    GET    /api/friends/list           好友列表
+    POST   /api/friends/request        发送好友申请 { friendId }
+    POST   /api/friends/accept         接受好友申请 { friendId }
+    DELETE /api/friends/:id            删除好友
+
+6.6 协同听歌接口 (/api/listen)
+    POST   /api/listen/room            创建房间
+    POST   /api/listen/invite          邀请好友 { roomId, toUserId }
+    POST   /api/listen/accept          接受邀请
+    POST   /api/listen/reject          拒绝邀请
+    POST   /api/listen/leave           离开房间
+    GET    /api/listen/room/:id        获取房间信息
+
+6.7 统一响应格式
+    { "code": 200, "message": "ok", "data": T }
+    错误：{ "code": 400/401/404/500, "message": "错误描述", "data": null }
+
+
+7. WebSocket 事件协议
+======================
+
+7.1 连接与注册
+    Client → Server:  register       { userId }
+    Server → Client:  registered     (确认注册成功)
+
+7.2 房间生命周期
+    Client → Server:  room:create    { userId, username }
+    Server → Client:  room:created   { roomId, state: RoomState }
+
+    Client → Server:  room:join      { roomId, userId, username }
+    Server → Client:  room:joined    { roomId, state: RoomState }
+    Server → Room:    room:memberJoined { userId, username }
+
+    Client → Server:  room:leave     { roomId, userId, username }
+    Server → Room:    room:memberLeft { userId, username }
+    Server → Room:    room:hostChanged { userId, username }
+
+7.3 邀请机制
+    Client → Server:  room:invite    { roomId, fromUserId, fromUsername, toUserId }
+    Server → Target:  room:invitation { roomId, fromUserId, fromUsername }
+    Client → Server:  room:inviteResponse { roomId, userId, username, accepted }
+    Server → Host:    room:inviteResult { userId, username, accepted, reason }
+
+7.4 播放同步（仅房主可发送）
+    Client → Server:  room:sync      { roomId, userId, action, song?, currentTime?, isPlaying? }
+    Server → Room:    room:sync      { song, currentTime, isPlaying, action }
+
+    action 取值：changeSong | play | pause | seek
+
+7.5 房间管理
+    Client → Server:  room:kick      { roomId, hostId, targetUserId }
+    Server → Target:  room:kicked    { roomId }
+    Server → Room:    room:memberKicked { userId, username }
+
+7.6 房间歌单
+    Client → Server:  room:addSongs  { roomId, userId, songs: SongInfo[] }
+    Client → Server:  room:removeSong { roomId, userId, index }
+    Server → Room:    room:playlistUpdated { playlist: SongInfo[] }
+
+7.7 聊天
+    Client → Server:  room:chat      { roomId, userId, username, text }
+    Server → Room:    room:chat      { userId, username, text, time }
+
+7.8 辅助
+    Client → Server:  room:list      (请求活跃房间列表)
+    Server → Client:  room:list      [{ roomId, hostName, memberCount }]
+    Client → Server:  friends:online { friendIds: number[] }
+    Server → Client:  friends:online [onlineFriendIds]
+
+
+8. 目录结构
+============
+
+music-player/
+├── electron.vite.config.ts          # electron-vite 三端构建配置
+├── package.json                     # 项目依赖（Electron + Vue3 + Element Plus）
+├── tsconfig.json / tsconfig.node.json / tsconfig.web.json
+├── resources/                       # 应用图标等静态资源
+├── server/                          # 后端服务（独立 Node.js 项目）
+│   ├── package.json                 # 后端依赖（Express + Socket.IO + sql.js）
+│   ├── tsconfig.json
+│   ├── data/music.db                # SQLite 数据库文件（运行时生成）
+│   └── src/
+│       ├── index.ts                 # Express 服务入口，端口 3000
+│       ├── db.ts                    # SQLite 初始化 + queryAll/queryOne/execute
+│       ├── db/mysql.ts              # MySQL 连接预留
+│       ├── cache.ts                 # Redis 缓存初始化
+│       ├── ws.ts                    # Socket.IO 事件处理器（300+ 行）
+│       ├── middleware/auth.ts       # JWT Token 鉴权中间件
+│       ├── routes/
+│       │   ├── auth.ts              # 注册/登录/登出（BCrypt + JWT）
+│       │   ├── playlist.ts          # 歌单 CRUD
+│       │   ├── sync.ts              # 云端同步
+│       │   ├── import.ts            # 歌单导入（文件/link/text，multer + cheerio）
+│       │   ├── play.ts              # 播放链接解析 + 歌词获取
+│       │   ├── friends.ts           # 好友管理
+│       │   └── listen.ts            # 协同听歌房间 REST API
+│       └── services/
+│           └── ncm.ts               # 网易云音乐 weapi 加密 + 歌单/歌词/URL 获取
+└── src/
+    ├── main/                        # Electron 主进程
+    │   ├── index.ts                 # 窗口创建、托盘、IPC 注册
+    │   └── ipc/file.ts              # 文件对话框等 IPC 通道
+    ├── preload/                     # Electron 预加载脚本
+    │   ├── index.ts                 # contextBridge 暴露 API
+    │   └── index.d.ts              # 类型声明
+    ├── shared/types.ts              # 前端共享类型
+    └── renderer/                    # Vue 3 前端
+        ├── index.html               # 入口 HTML
+        ├── main.ts                  # Vue 初始化：Pinia + Router + ElementPlus
+        ├── App.vue                  # 根组件（router-view + 过渡动画）
+        ├── env.d.ts                 # 环境类型声明
+        ├── router/index.ts          # 路由配置（14 路由 + 导航守卫）
+        ├── socket/index.ts          # Socket.IO 客户端单例
+        ├── styles/                  # 全局样式
+        │   ├── variables.scss       # CSS 变量（毛玻璃主题色）
+        │   ├── global.scss          # 全局重置与基础样式
+        │   └── transitions.scss     # 路由过渡动画
+        ├── types/
+        │   └── song.ts              # Song 接口定义
+        ├── utils/
+        │   ├── lyrics.ts            # LRC 解析 + 活跃行查找
+        │   └── format.ts            # 时间格式化工具
+        ├── composables/             # 组合式函数
+        │   ├── useAudio.ts          # 音频引擎（Audio 封装 + URL 解析 + 歌词获取）
+        │   ├── useAudioPreload.ts   # 音频预加载
+        │   └── useLyrics.ts         # 歌词响应式绑定（MaybeRef 兼容）
+        ├── api/                     # Axios API 封装层
+        │   ├── index.ts             # Axios 实例 + 拦截器
+        │   ├── auth.ts              # 认证 API
+        │   ├── playlist.ts          # 歌单 API
+        │   ├── sync.ts              # 同步 API
+        │   ├── import.ts            # 导入 API
+        │   ├── friends.ts           # 好友 API
+        │   └── play.ts              # 播放 API
+        ├── stores/                  # Pinia 状态管理
+        │   ├── auth.ts              # 用户认证状态
+        │   ├── player.ts            # 播放器状态（核心 Store）
+        │   ├── playlist.ts          # 歌单状态
+        │   ├── sync.ts              # 同步状态
+        │   ├── friends.ts           # 好友状态
+        │   └── listen.ts            # 协同听歌房间状态（300+ 行）
+        ├── layout/                  # 布局组件
+        │   ├── MainLayout.vue       # 主布局（三栏）
+        │   ├── SidebarLeft.vue      # 左侧导航栏
+        │   ├── ContentCenter.vue    # 中间内容区
+        │   ├── SidebarRight.vue     # 右侧歌单栏
+        │   └── PlayerBar.vue        # 底部播放控制栏
+        ├── components/              # 可复用组件（17 个）
+        │   ├── PlayControls.vue     # 播放控制按钮
+        │   ├── ProgressBar.vue      # 进度条
+        │   ├── VolumeControl.vue    # 音量控制
+        │   ├── SongTable.vue        # 歌曲列表（虚拟滚动）
+        │   ├── SongInfo.vue         # 歌曲信息展示
+        │   ├── SearchBar.vue        # 搜索栏
+        │   ├── CoverDisplay.vue     # 专辑封面
+        │   ├── LyricsPanel.vue      # 歌词面板
+        │   ├── PlaylistNav.vue      # 歌单导航
+        │   ├── NavMenu.vue          # 导航菜单
+        │   ├── FileUpload.vue       # 文件上传组件
+        │   ├── LinkInput.vue        # 链接输入组件
+        │   ├── TextPaste.vue        # 文本粘贴组件
+        │   ├── ImportPreview.vue    # 导入预览
+        │   ├── InviteDialog.vue     # 邀请好友对话框
+        │   ├── AddSongsDialog.vue   # 添加歌曲对话框
+        │   └── UserInfo.vue         # 用户信息卡片
+        └── pages/                   # 页面组件（14 个）
+            ├── LoginPage.vue        # 登录页
+            ├── RegisterPage.vue     # 注册页
+            ├── PlayQueue.vue        # 播放队列
+            ├── PlaylistDetail.vue   # 歌单详情
+            ├── SyncPage.vue         # 云端同步
+            ├── FriendsPage.vue      # 好友管理
+            ├── ListenRoom.vue       # 协同听歌房间
+            ├── ImportPage.vue       # 歌单导入
+            ├── SearchPage.vue       # 搜索
+            ├── FavoritesPage.vue    # 收藏
+            ├── HistoryPage.vue      # 播放历史
+            ├── SettingsPage.vue     # 设置
+            ├── ImmersivePlayer.vue  # 沉浸式播放器（全屏封面 + 歌词）
+            └── AboutPage.vue        # 关于页面
+
+
+9. 技术选型总览
+================
+
+    ┌──────────────────┬─────────────────────────────────────┐
+    │      层级        │              技术栈                  │
+    ├──────────────────┼─────────────────────────────────────┤
+    │ 桌面容器         │ Electron 31                         │
+    │ 前端框架         │ Vue 3.5 (Composition API)           │
+    │ 类型系统         │ TypeScript 5.6 (strict mode)        │
+    │ 构建工具         │ electron-vite 3.1 (Vite 5.4)        │
+    │ 状态管理         │ Pinia 2.2 (Setup Store 语法)       │
+    │ UI 组件库        │ Element Plus 2.9                    │
+    │ 样式             │ SCSS + 毛玻璃特效 (CSS backdrop-filter) │
+    │ HTTP 客户端      │ Axios 1.7                           │
+    │ 路由             │ Vue Router 4.4 (Hash 模式)          │
+    │ 实时通信         │ Socket.IO 4.8 (Client + Server)     │
+    ├──────────────────┼─────────────────────────────────────┤
+    │ 后端运行环境     │ Node.js + tsx (TypeScript 热重载)   │
+    │ Web 框架         │ Express 4.21                        │
+    │ 实时通信服务     │ Socket.IO 4.8                       │
+    │ 认证             │ JWT (jsonwebtoken) + BCrypt (bcryptjs) │
+    │ 文件上传         │ multer 1.4 (memoryStorage)           │
+    │ HTML 解析        │ cheerio 1.2                          │
+    │ 本地数据库       │ SQLite via sql.js (纯 JS, 零安装)    │
+    │ 云端数据库       │ MySQL via mysql2 (可选)              │
+    │ 缓存             │ Redis via ioredis (可选)             │
+    │ 加密             │ Node.js crypto (AES-128-CBC + RSA)   │
+    └──────────────────┴─────────────────────────────────────┘
+
+
+10. 关键技术实现
+=================
+
+10.1 网易云音乐 API 逆向 (ncm.ts)
+     - 实现 NeteaseCloudMusic weapi 加密协议
+     - AES-128-CBC 双重加密 + RSA 非对称加密
+     - 接口：获取歌单详情 / 获取歌词 / 获取播放 URL
+     - 随机 User-Agent 轮换，降低封禁风险
+
+10.2 酷狗音乐歌单解析
+     - 短链接解析链：share/schain/transfer API
+     - 歌单获取：mobilecdn.kugou.com API (需 Mobile UA)
+     - 文件名自动拆解为 "歌手 - 歌名" 格式
+
+10.3 多重 Fallback 导入解析器
+     对于非标准链接，采用三级 Fallback 策略：
+     (1) JSON 数据提取（__INITIAL_STATE__ / pageData 等注入变量）
+     (2) DOM 元素遍历（song_item / music-item 等 CSS 选择器）
+     (3) 全文文本提取 + 正则匹配
+
+10.4 毛玻璃 UI 设计
+     - CSS backdrop-filter: blur() 实现毛玻璃效果
+     - 暗色主题 + 暖色调强调色 (#FFAA75)
+     - mask-image 渐变遮罩实现歌词淡入淡出
+     - 路由过渡动画（fade + slide）
+
+10.5 虚拟滚动 (SongTable.vue)
+     - 固定行高 ROW_HEIGHT = 42px
+     - 仅渲染可视区域 + 缓冲区（上下各 8 行）
+     - 通过渲染上下 spacer 维持滚动条高度
+     - 使用 shallowRef 减少滚动事件响应开销
+
+
+11. 项目难点与解决方案
+=======================
+
+    ┌──────────────────────────┬───────────────────────────────────────────┐
+    │          难点            │                解决方案                    │
+    ├──────────────────────────┼───────────────────────────────────────────┤
+    │ 多平台格式不统一         │ 统一 Song 数据模型 + 平台适配器层          │
+    │ 云端同步冲突             │ 版本号 + 时间戳增量同步                   │
+    │ 实时播放延迟             │ WebSocket + 房主时间校准 + 本地插值        │
+    │ 多人控制冲突             │ 房主控制模式 + 操作权限校验                │
+    │ 大量歌曲导入卡顿         │ 流式解析 + 批量 INSERT                    │
+    │ 高并发同步压力           │ Redis 缓存 + 异步队列（预留）              │
+    │ 歌词实时滚动卡顿         │ nextTick + scrollIntoView + requestAnimationFrame │
+    │ Pinia ref 解包断裂       │ useLyrics 使用 MaybeRef + toValue() 兼容  │
+    │ 歌词异步加载时机         │ watch lyrics 属性变化 + 独立同步通道      │
+    │ 网易云 API 加密          │ AES-128-CBC 双重加密 + RSA NoPadding       │
+    │ 酷狗短链解析             │ schain/transfer API + mobilecdn 分页拉取  │
+    └──────────────────────────┴───────────────────────────────────────────┘
+
+
+12. 开发计划与完成状态
+=======================
+
+    第一阶段 ✅ 需求分析与原型设计
+    第二阶段 ✅ 本地播放功能开发（播放引擎 + 歌词系统 + 沉浸式播放器）
+    第三阶段 ✅ 在线歌单同步开发（用户认证 + 歌单 CRUD + 云端同步）
+    第四阶段 ✅ 好友系统开发（好友管理 + 在线状态 + 实时推送）
+    第五阶段 ✅ 协同听歌功能开发（房间系统 + 播放同步 + 邀请 + 聊天）
+    第六阶段 ✅ 多平台导入（网易云 + 酷狗 + 通用解析）
+    第七阶段 🔄 性能优化与测试
+
+
+13. 项目总结
+=============
+
+    本项目设计并实现了一个基于 Electron + Vue 3 的桌面端音乐播放器，具备以下特色：
+
+    1. 完整的本地音乐播放体验，支持多种播放模式和沉浸式歌词展示。
+    2. 多平台歌单导入，支持网易云音乐和酷狗音乐的 API 级解析。
+    3. 实时协同听歌系统，基于 Socket.IO 实现房主控制模式的播放同步。
+    4. 好友社交系统，支持在线状态实时推送和邀请机制。
+    5. 毛玻璃暗色主题 UI，提供现代化的视觉体验。
+    6. 前后端分离架构，模块化设计，易于扩展和维护。
+
+    系统采用四层架构（客户端 / 服务端 / 数据存储 / WebSocket），前后端均使用
+    TypeScript 开发，保证了类型安全和代码质量。
