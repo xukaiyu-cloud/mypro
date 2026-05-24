@@ -1,0 +1,68 @@
+<h2>前端架构方案对比</h2>
+<p class="subtitle">基于 Vue 3 + Element Plus + Pinia + electron-vite，选择最合适的前端架构组织方式</p>
+
+<div class="cards">
+  <div class="card" data-choice="simple" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>A. 轻量单页型</h3>
+      <p>单一主窗口，通过 Tab / 侧边栏 / 抽屉切换不同功能视图。没有 Vue Router，所有状态集中管理。</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">主窗口 — 侧边栏切换</div>
+        <div class="mockup-body">
+          <div style="display:flex;height:180px">
+            <div class="mock-sidebar" style="width:60px;font-size:10px;text-align:center">
+              播放<br>歌单<br>导入<br>同步<br>设置
+            </div>
+            <div class="mock-content" style="flex:1;text-align:center;padding-top:70px">
+              当前功能视图
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>优点</h4><ul><li>结构简单，开发快速</li><li>无路由切换开销</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>所有逻辑耦合在一起</li><li>难以独立维护每个功能</li><li>不适合复杂交互</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="standard" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>B. 标准多页型 ⭐ 推荐</h3>
+      <p>Vue Router 管理多个独立页面（主界面、登录、导入等），主界面采用经典三栏布局。各页面独立组件树，Pinia Store 按功能模块拆分。</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">路由结构</div>
+        <div class="mockup-body" style="font-size:13px;line-height:1.8">
+          / → 主界面（三栏布局）<br>
+          &nbsp;&nbsp;├── /login → 登录/注册<br>
+          &nbsp;&nbsp;├── /import → 歌单导入<br>
+          &nbsp;&nbsp;├── /sync → 同步管理<br>
+          &nbsp;&nbsp;└── /settings → 用户设置
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>优点</h4><ul><li>职责清晰，路由天然隔离</li><li>三栏布局与总设计文稿一致</li><li>适合团队协作和迭代</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>页面间状态共享需设计好</li><li>路由配置需维护</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="micro" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>C. 模块分包型</h3>
+      <p>按功能拆分为独立的子应用 / BrowserWindow，每个模块有独立的路由、Store 甚至独立进程。主进程统一调度。</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">多窗口 / 模块分离</div>
+        <div class="mockup-body" style="font-size:13px;line-height:1.8">
+          播放窗口 ── 主窗口 ── 导入窗口<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── 同步窗口<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── 设置窗口
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>优点</h4><ul><li>极致隔离，可独立发布</li><li>多窗口体验灵活</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>过于复杂，窗口通信成本高</li><li>不适合当前项目规模</li><li>用户多窗口体验割裂</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

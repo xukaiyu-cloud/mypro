@@ -1,0 +1,239 @@
+<h2>毛玻璃流光系主题 — 主界面</h2>
+<p class="subtitle">Glassmorphism + Flowing Light — 半透明模糊背景、渐变流光、轻盈通透</p>
+
+<style>
+  .glass-demo {
+    font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(100,140,255,0.15);
+    position: relative;
+  }
+  .glass-bg {
+    background: linear-gradient(135deg, #0c0c1d 0%, #1a1040 30%, #0d1b3e 60%, #0c0c1d 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .glass-bg::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(120,80,255,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(0,180,255,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(180,60,200,0.10) 0%, transparent 50%);
+    animation: flowLight 8s ease-in-out infinite;
+  }
+  @keyframes flowLight {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(1%, -1%); }
+    50% { transform: translate(-0.5%, 1%); }
+    75% { transform: translate(0.5%, -0.5%); }
+  }
+  .glass-panel {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+  }
+  .glass-panel-strong {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+  }
+  .accent-glow {
+    background: linear-gradient(135deg, rgba(120,80,255,0.6), rgba(0,180,255,0.5));
+    box-shadow: 0 0 20px rgba(100,140,255,0.3);
+  }
+  .text-primary { color: #e8e8f0; }
+  .text-secondary { color: #a0a0c0; }
+  .text-muted { color: #6a6a8a; }
+  .accent { color: #9b8eff; }
+  .accent-blue { color: #60c0ff; }
+</style>
+
+<div class="mockup">
+  <div class="mockup-header">毛玻璃流光系 — 深色底 + 半透明面板 + 动态渐变光晕</div>
+  <div class="mockup-body glass-bg" style="padding:0">
+
+    <!-- 顶部标题栏 - 毛玻璃 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(255,255,255,0.03);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06)">
+      <span style="color:#e8e8f0;font-size:13px;font-weight:600">🎵 音乐播放器</span>
+      <div style="display:flex;gap:16px">
+        <span style="font-size:11px;color:#6a6a8a">—</span>
+        <span style="font-size:11px;color:#6a6a8a">□</span>
+        <span style="font-size:11px;color:#e8e8f0">✕</span>
+      </div>
+    </div>
+
+    <!-- 三栏主体 -->
+    <div style="display:flex;height:410px;position:relative;z-index:1">
+
+      <!-- 左侧栏 220px -->
+      <div style="width:220px;padding:14px 10px;display:flex;flex-direction:column;gap:10px;border-right:1px solid rgba(255,255,255,0.05)">
+        <!-- 用户信息 -->
+        <div class="glass-panel-strong" style="display:flex;align-items:center;gap:10px;padding:10px">
+          <div class="accent-glow" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0">U</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#e8e8f0">用户名</div>
+            <div style="font-size:10px;color:#9b8eff">● 在线</div>
+          </div>
+        </div>
+
+        <!-- 导航菜单 -->
+        <div class="glass-panel" style="padding:6px;display:flex;flex-direction:column;gap:1px">
+          <div style="padding:8px 10px;color:#a0a0c0;font-size:12px;border-radius:6px">🎵 正在播放</div>
+          <div style="padding:8px 10px;color:#a0a0c0;font-size:12px;border-radius:6px">🕐 最近播放</div>
+          <div style="padding:8px 10px;color:#a0a0c0;font-size:12px;border-radius:6px">❤️ 我的收藏</div>
+          <div style="padding:8px 10px;color:#9b8eff;font-size:12px;border-radius:6px;background:rgba(155,142,255,0.12)">📋 我的歌单 ▸</div>
+        </div>
+
+        <!-- 歌单列表 -->
+        <div style="font-size:11px;color:#6a6a8a;display:flex;justify-content:space-between;align-items:center;padding:0 6px">
+          <span>歌单 (4)</span>
+          <span style="color:#60c0ff;cursor:pointer">＋ 新建</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;padding:0 6px">
+          <div style="padding:5px 8px;color:#a0a0c0;font-size:11px;border-radius:4px;cursor:pointer">▸ 华语经典</div>
+          <div style="padding:5px 8px;color:#a0a0c0;font-size:11px;border-radius:4px;cursor:pointer">▸ 欧美精选</div>
+          <div style="padding:5px 8px;color:#a0a0c0;font-size:11px;border-radius:4px;cursor:pointer">▸ 轻音乐</div>
+          <div style="padding:5px 8px;color:#a0a0c0;font-size:11px;border-radius:4px;cursor:pointer">▸ 导入-网易云</div>
+        </div>
+      </div>
+
+      <!-- 中间内容区 flex:1 -->
+      <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:10px">
+        <!-- 搜索栏 -->
+        <div class="glass-panel" style="display:flex;align-items:center;padding:4px;gap:8px">
+          <div style="flex:1;padding:8px 12px;color:#a0a0c0;font-size:12px;background:transparent;border:none;outline:none">🔍 搜索歌曲、歌手、专辑...</div>
+          <div class="accent-glow" style="padding:8px 18px;border-radius:6px;font-size:12px;color:#fff;font-weight:500;cursor:pointer;white-space:nowrap">导入歌单</div>
+        </div>
+
+        <!-- Tab -->
+        <div style="display:flex;gap:20px;font-size:12px;padding:4px 0">
+          <span style="color:#9b8eff;border-bottom:2px solid #9b8eff;padding-bottom:6px;font-weight:500">全部歌曲</span>
+          <span style="color:#6a6a8a;cursor:pointer">歌单详情</span>
+          <span style="color:#6a6a8a;cursor:pointer">最近添加</span>
+        </div>
+
+        <!-- 歌曲表头 -->
+        <div style="display:flex;font-size:11px;color:#6a6a8a;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          <span style="width:30px">#</span>
+          <span style="flex:2">歌曲</span>
+          <span style="flex:1.5">歌手</span>
+          <span style="flex:1.5">专辑</span>
+          <span style="width:60px;text-align:right">时长</span>
+        </div>
+
+        <!-- 歌曲行 -->
+        <div class="glass-panel" style="display:flex;align-items:center;font-size:12px;color:#a0a0c0;padding:10px 0;margin-bottom:4px">
+          <span style="width:30px;color:#6a6a8a;padding-left:8px">1</span>
+          <span style="flex:2;display:flex;align-items:center;gap:8px"><span style="color:#9b8eff">▶</span> 晴天</span>
+          <span style="flex:1.5;color:#a0a0c0">周杰伦</span>
+          <span style="flex:1.5;color:#a0a0c0">叶惠美</span>
+          <span style="width:60px;text-align:right;color:#6a6a8a;padding-right:8px">4:29</span>
+        </div>
+        <div class="glass-panel-strong" style="display:flex;align-items:center;font-size:12px;padding:10px 0;margin-bottom:4px;border:1px solid rgba(155,142,255,0.3);background:rgba(155,142,255,0.08)">
+          <span style="width:30px;color:#9b8eff;padding-left:8px">▶</span>
+          <span style="flex:2;display:flex;align-items:center;gap:8px;color:#e8e8f0">♪ 稻香</span>
+          <span style="flex:1.5;color:#a0a0c0">周杰伦</span>
+          <span style="flex:1.5;color:#a0a0c0">魔杰座</span>
+          <span style="width:60px;text-align:right;color:#6a6a8a;padding-right:8px">3:43</span>
+        </div>
+        <div class="glass-panel" style="display:flex;align-items:center;font-size:12px;color:#a0a0c0;padding:10px 0;margin-bottom:4px">
+          <span style="width:30px;color:#6a6a8a;padding-left:8px">3</span>
+          <span style="flex:2;display:flex;align-items:center;gap:8px">🎵 夜曲</span>
+          <span style="flex:1.5;color:#a0a0c0">周杰伦</span>
+          <span style="flex:1.5;color:#a0a0c0">十一月的萧邦</span>
+          <span style="width:60px;text-align:right;color:#6a6a8a;padding-right:8px">3:46</span>
+        </div>
+      </div>
+
+      <!-- 右侧栏 280px -->
+      <div style="width:280px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px;border-left:1px solid rgba(255,255,255,0.05)">
+        <!-- 封面 - 流光边框 -->
+        <div style="position:relative;padding:3px;border-radius:16px;background:linear-gradient(135deg, rgba(155,142,255,0.4), rgba(96,192,255,0.4), rgba(180,100,220,0.3));animation:flowLight 4s ease-in-out infinite">
+          <div style="width:170px;height:170px;border-radius:14px;background:linear-gradient(135deg, rgba(80,40,140,0.6), rgba(20,60,120,0.5));display:flex;align-items:center;justify-content:center;color:#fff;font-size:52px;backdrop-filter:blur(10px)">♫</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:17px;font-weight:600;color:#e8e8f0">稻香</div>
+          <div style="font-size:12px;color:#9b8eff">周杰伦 · 魔杰座</div>
+        </div>
+        <!-- 歌词 - 毛玻璃面板 -->
+        <div class="glass-panel" style="width:100%;padding:12px;font-size:11px;color:#a0a0c0;line-height:2;text-align:center;max-height:130px;overflow-y:auto">
+          对这个世界如果你有太多的抱怨<br>
+          跌倒了就不敢继续往前走<br>
+          为什么人要这么的脆弱堕落<br>
+          <span style="color:#60c0ff;font-weight:500">请你打开电视看看...</span><br>
+          多少人为生命在努力勇敢的走下去
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部播放栏 - 毛玻璃 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:rgba(255,255,255,0.04);backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.06);position:relative;z-index:1;gap:16px">
+      <!-- 当前歌曲 -->
+      <div style="display:flex;align-items:center;gap:10px;min-width:170px">
+        <div style="width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg, rgba(120,60,200,0.6), rgba(0,140,220,0.5));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">♫</div>
+        <div style="font-size:11px">
+          <div style="color:#e8e8f0;font-weight:600">稻香</div>
+          <div style="color:#9b8eff">周杰伦</div>
+        </div>
+        <span style="color:#9b8eff;font-size:14px;cursor:pointer">❤️</span>
+      </div>
+
+      <!-- 播放控制 -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="display:flex;align-items:center;gap:20px">
+          <span style="color:#a0a0c0;font-size:14px;cursor:pointer">⏮</span>
+          <span class="accent-glow" style="color:#fff;font-size:22px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">⏸</span>
+          <span style="color:#a0a0c0;font-size:14px;cursor:pointer">⏭</span>
+          <span style="font-size:11px;color:#6a6a8a">1:24 / 3:43</span>
+        </div>
+        <!-- 进度条 -->
+        <div style="width:100%;max-width:480px;height:4px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden">
+          <div class="accent-glow" style="width:38%;height:100%;border-radius:4px;position:relative">
+            <div style="position:absolute;right:-5px;top:-4px;width:12px;height:12px;background:#9b8eff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(155,142,255,0.6)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧控制 -->
+      <div style="display:flex;align-items:center;gap:14px;min-width:150px;justify-content:flex-end">
+        <span style="color:#6a6a8a;font-size:13px;cursor:pointer">🔀</span>
+        <span style="color:#9b8eff;font-size:13px;cursor:pointer">🔁</span>
+        <span style="font-size:10px;color:#6a6a8a">🔊</span>
+        <div style="width:70px;height:3px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden">
+          <div class="accent-glow" style="width:70%;height:100%;border-radius:3px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;gap:16px;margin-top:16px">
+  <div class="section" style="flex:1">
+    <h3>🎨 配色方案</h3>
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">背景底色</td><td style="padding:4px 8px;color:#0c0c1d">#0c0c1d 深蓝紫黑</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">主色调</td><td style="padding:4px 8px;color:#9b8eff">#9b8eff 薰衣草紫</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">辅色调</td><td style="padding:4px 8px;color:#60c0ff">#60c0ff 天空蓝</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">面板背景</td><td style="padding:4px 8px">rgba(255,255,255,0.04~0.07)</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">文字主色</td><td style="padding:4px 8px;color:#e8e8f0">#e8e8f0</td></tr>
+      <tr><td style="padding:4px 8px">边框</td><td style="padding:4px 8px">rgba(255,255,255,0.06~0.12)</td></tr>
+    </table>
+  </div>
+  <div class="section" style="flex:1">
+    <h3>✨ 毛玻璃 + 流光特性</h3>
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">面板质感</td><td style="padding:4px 8px">backdrop-filter: blur(20~24px)</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">流光背景</td><td style="padding:4px 8px">3层渐变光晕 + 缓慢位移动画</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">高亮元素</td><td style="padding:4px 8px">紫蓝渐变 + glow 阴影</td></tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)"><td style="padding:4px 8px">当前歌曲</td><td style="padding:4px 8px">高亮边框 + 半透明底色</td></tr>
+      <tr><td style="padding:4px 8px">封面边框</td><td style="padding:4px 8px">渐变流光边框 + 动画</td></tr>
+    </table>
+  </div>
+</div>

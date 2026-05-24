@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -L -H \"User-Agent: Mozilla/5.0 \\(Linux; Android 10; K\\) AppleWebKit/537.36\" \"http://m.kugou.com/plist/list/125032?json=true\")",
+      "Bash(npx tsx *)",
+      "Bash(curl -s -X POST http://localhost:3000/api/import/link -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoidGVzdCIsImlhdCI6MTc3OTQyNzY2OSwiZXhwIjoxNzgwMDMyNDY5fQ.yXFdlPG1FyC1fD_ySTDwFwsXwAlVXNZSBjFxnjlFiLQ' -d '{\"url\":\"https://www.kugou.com/songlist/125032\",\"platform\":\"kugou\"}')",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(taskkill //F //IM electron.exe)",
+      "Bash(curl -s http://localhost:3000/api/health)"
+    ]
+  }
+}

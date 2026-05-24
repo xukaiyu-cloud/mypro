@@ -1,0 +1,71 @@
+<h2>路由设计与组件树</h2>
+<p class="subtitle">Vue Router 路由划分 + 核心组件嵌套关系</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">📋 路由表设计</div>
+    <div class="mockup-body" style="font-size:13px;line-height:2;font-family:monospace">
+<span style="color:#409EFF">/</span>  →  MainLayout（主布局）<br>
+<span style="color:#409EFF">/login</span>  →  LoginPage（登录）<br>
+<span style="color:#409EFF">/register</span>  →  RegisterPage（注册）<br>
+<span style="color:#409EFF">/import</span>  →  ImportPage（导入歌单）<br>
+<span style="color:#409EFF">/settings</span>  →  SettingsPage（设置）<br>
+<span style="color:#409EFF">/about</span>  →  AboutPage（关于）<br>
+<br>
+主布局 <span style="color:#409EFF">MainLayout</span> 内部子路由：<br>
+&nbsp;&nbsp;<span style="color:#409EFF">/</span>  →  默认：播放队列视图<br>
+&nbsp;&nbsp;<span style="color:#409EFF">/playlist/:id</span>  →  歌单详情<br>
+&nbsp;&nbsp;<span style="color:#409EFF">/sync</span>  →  同步视图<br>
+&nbsp;&nbsp;<span style="color:#409EFF">/history</span>  →  播放历史<br>
+&nbsp;&nbsp;<span style="color:#409EFF">/search</span>  →  搜索结果<br>
+&nbsp;&nbsp;<span style="color:#409EFF">/favorites</span>  →  收藏列表
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">🌲 核心组件树</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.8;font-family:monospace">
+<span style="font-weight:bold">App.vue</span><br>
+├── <span style="color:#409EFF">MainLayout.vue</span>（三栏布局壳）<br>
+│&nbsp;&nbsp;&nbsp;├── <span style="color:#E6A23C">SidebarLeft</span>（左侧歌单导航）<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── UserInfo<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── PlaylistNav<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── MenuActions<br>
+│&nbsp;&nbsp;&nbsp;├── <span style="color:#E6A23C">ContentCenter</span>（中间内容区）<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── SongTable<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── SearchBar<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── &lt;router-view /&gt;<br>
+│&nbsp;&nbsp;&nbsp;├── <span style="color:#E6A23C">SidebarRight</span>（右侧详情）<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── CoverDisplay<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── LyricsPanel<br>
+│&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── SongInfo<br>
+│&nbsp;&nbsp;&nbsp;└── <span style="color:#E6A23C">PlayerBar</span>（底部播放栏）<br>
+│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── PlayControls<br>
+│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── ProgressBar<br>
+│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── VolumeControl<br>
+├── <span style="color:#409EFF">LoginPage.vue</span><br>
+├── <span style="color:#409EFF">RegisterPage.vue</span><br>
+├── <span style="color:#409EFF">ImportPage.vue</span><br>
+└── <span style="color:#409EFF">SettingsPage.vue</span>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px">
+  <h3>路由设计要点</h3>
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+    <div class="mockup" style="flex:1;min-width:200px">
+      <div class="mockup-header">路由守卫</div>
+      <div class="mockup-body" style="font-size:13px">
+        登录/注册页面对外开放；<br>
+        主界面、导入、同步等页面需要 <strong>登录状态校验</strong>，未登录自动跳转 /login
+      </div>
+    </div>
+    <div class="mockup" style="flex:1;min-width:200px">
+      <div class="mockup-header">布局复用</div>
+      <div class="mockup-body" style="font-size:13px">
+        MainLayout 作为壳布局，PlayerBar 固定在底部不随路由切换销毁，保证播放不中断
+      </div>
+    </div>
+  </div>
+</div>

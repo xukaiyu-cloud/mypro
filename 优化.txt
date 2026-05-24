@@ -1,0 +1,102 @@
+
+项目改进分析与方案
+🐛 一、Bug 修复
+1. 房间同步歌曲信息割裂（前述 bug）
+
+在 listen.ts 的 room:sync 处理器中，play/pause/seek 分支不更新 player.currentSong。
+
+方案： 将 player.currentSong 的同步提到各分支之前统一处理，每次收到 room:sync 都对比 data.song 与 player.currentSong，不一致则调用 player.play()。
+
+2. 成员端播放列表无限增长
+
+room:sync 中每次 player.play({ id: Date.now() }) 都生成新 ID，导致 player.playlist 不断追加。
+
+方案： 对房间歌曲使用固定 ID 策略（如 room_song_${roomId}_${index}），或每次切歌前先清空 player.playlist。
+
+3. 房主离开 ListenRoom 页面后同步中断
+
+ListenRoom.vue 中的三个 watch（player.currentSong、player.isPlaying、player.currentTime）只在组件挂载时生效。房主切到其他页面后，播放器变化不再触发 syncToRoom。
+
+方案： 将宿主同步逻辑从组件 watch 迁移到 listenStore 内部，使用 store.$subscribe 或在 connect() 时注册全局 watcher，保证同步与页面无关。
+
+🏗️ 二、架构优化
+4. SongInfo 类型重复定义
+
+listen.ts、ws.ts、ListenRoom.vue 中各自定义了 SongInfo 接口。
+
+方案： 统一定义在 shared/types.ts 中，全项目引用一处。
+
+5. 房间状态缺乏状态机
+
+创建/加入/离开/被踢等操作直接修改 currentRoom，没有明确的状态转换。断线重连后房间状态完全丢失。
+
+方案： 引入房间状态枚举（idle → connecting → inRoom → disconnected），disconnect 时保留 lastRoomId，重连后自动调用 room:rejoin 恢复状态。
+
+6. WebSocket 事件处理器与 UI 耦合
+
+room:sync 处理器里既更新 store 又调用 player.play()（触发音频），职责混杂。
+
+方案： 拆分为两层——listenStore 只负责房间状态（纯数据），新增 useRoomPlayerSync composable 负责"房间状态 → 本地播放器"的映射。
+
+⚡ 三、性能优化
+7. 播放进度同步频率过高
+
+当前 2 秒阈值仍然频繁。5 人在线时，每人每秒可能发 0.5 次 seek 事件。
+
+方案： 改为 5 秒间隔 + 智能触发（仅在播放状态变化、切歌、或进度差 > 3 秒时发送）。
+
+8. 歌词重复加载
+
+useAudio.ts 中每次切歌都调 fetchLyricsForSong，同一首歌多次播放会重复请求。
+
+方案： 在 store 中加 Map<songId, lyrics> 缓存，命中则跳过请求。
+
+9. resolveUrl 无缓存
+
+同一首歌每次播放都重新调用平台 API 解析 URL。
+
+方案： 增加 TTL 缓存（如 30 分钟），Map<hash, { url, expireAt }>。
+
+🛡️ 四、健壮性
+10. resolveUrl 失败后无降级
+
+解析失败时只弹 ElMessage.warning，成员端静默失败——播放栏状态与实际音频不一致。
+
+方案： 失败时设置 player.currentSong 为带错误标记的歌曲对象，UI 显示"播放失败"状态而非静默卡死。
+
+11. 缺少断线重连的房间恢复
+
+Socket 断开后，connected 变 false，但 currentRoom 不会被清空。重连后客户端以为还在房间，服务端已清理。
+
+方案： disconnect 事件中清空 currentRoom 并提示用户；如需自动恢复，发 room:rejoin 请求。
+
+12. 服务端房间无过期清理
+
+ws.ts 中的 rooms Map 只在成员全部离开时删除。如果房主断线但成员未主动离开，房间永远残留。
+
+方案： 增加房间心跳机制，5 分钟无活动自动清理。
+
+✨ 五、功能增强
+13. 房主转让后不重新同步
+
+room:hostChanged 只更新 hostId/hostName，新房主的播放状态不会推送给成员。
+
+方案： 新房主收到 hostChanged 后，立即调用 syncToRoom('changeSong') 发送当前播放状态。
+
+14. 缺少"正在播放"指示器
+
+isCurrentRoomSong() 判断逻辑粗糙——仅比较 title + artist，同名不同版本会误判。
+
+方案： 给房间播放列表每首歌分配唯一 songId，用 ID 精确匹配。
+
+15. 未实现消息聊天 UI
+
+listenStore 有 messages 和 sendMessage，但 ListenRoom 页面没有任何聊天输入框或消息列表。
+
+方案： 在成员面板下方增加聊天区域，支持发送文字消息。
+
+16. 无音量同步
+
+房间内各成员音量独立，无法统一体验。
+
+方案： 房主可选的"同步音量"开关，成员端显示提示但不强制（尊重本地偏好）。

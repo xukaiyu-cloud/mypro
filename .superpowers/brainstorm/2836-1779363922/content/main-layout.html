@@ -1,0 +1,151 @@
+<h2>主界面布局设计</h2>
+<p class="subtitle">MainLayout — 三栏布局 + 底部播放栏，窗口尺寸 1200×800</p>
+
+<div class="mockup">
+  <div class="mockup-header">主界面整体布局</div>
+  <div class="mockup-body" style="padding:0;background:#1a1a2e">
+    <!-- 顶部标题栏 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#16213e;color:#eee;font-size:12px">
+      <span>🎵 音乐播放器</span>
+      <div style="display:flex;gap:12px">
+        <span style="font-size:11px;opacity:0.7">__ □ ✕</span>
+      </div>
+    </div>
+    <!-- 三栏主体 -->
+    <div style="display:flex;height:400px">
+      <!-- 左侧栏 220px -->
+      <div style="width:220px;background:#16213e;border-right:1px solid #0f3460;padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#0f3460;border-radius:6px">
+          <div style="width:32px;height:32px;background:#533483;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">U</div>
+          <div style="color:#eee;font-size:12px">
+            <div style="font-weight:bold">用户名</div>
+            <div style="font-size:10px;opacity:0.6">在线</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="padding:6px 10px;color:#ccc;font-size:12px;border-radius:4px">🎵 正在播放</div>
+          <div style="padding:6px 10px;color:#ccc;font-size:12px;border-radius:4px">🕐 最近播放</div>
+          <div style="padding:6px 10px;color:#ccc;font-size:12px;border-radius:4px">❤️ 我的收藏</div>
+          <div style="padding:6px 10px;color:#409EFF;font-size:12px;border-radius:4px;background:rgba(64,158,255,0.15)">📋 我的歌单</div>
+        </div>
+        <div style="font-size:10px;color:#888;display:flex;justify-content:space-between;align-items:center">
+          <span>歌单列表</span>
+          <span style="color:#409EFF;cursor:pointer">＋ 新建</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="padding:4px 10px;color:#aaa;font-size:11px;border-radius:3px">▸ 华语经典</div>
+          <div style="padding:4px 10px;color:#aaa;font-size:11px;border-radius:3px">▸ 欧美精选</div>
+          <div style="padding:4px 10px;color:#aaa;font-size:11px;border-radius:3px">▸ 轻音乐</div>
+          <div style="padding:4px 10px;color:#aaa;font-size:11px;border-radius:3px">▸ 导入-网易云</div>
+        </div>
+      </div>
+      <!-- 中间内容区 flex:1 -->
+      <div style="flex:1;background:#1a1a2e;padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="mock-input" style="flex:1;margin:0;background:#16213e;border:1px solid #0f3460;color:#ccc;padding:8px 12px;border-radius:6px">🔍 搜索歌曲、歌手、专辑...</div>
+          <div class="mock-button" style="margin:0;background:#409EFF;padding:8px 16px;border-radius:6px;font-size:12px">导入歌单</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#aaa">
+          <span style="color:#409EFF;border-bottom:2px solid #409EFF;padding-bottom:4px">全部歌曲</span>
+          <span>歌单详情</span>
+          <span>最近添加</span>
+        </div>
+        <!-- 歌曲列表表头 -->
+        <div style="display:flex;font-size:11px;color:#888;padding:6px 0;border-bottom:1px solid #0f3460">
+          <span style="width:30px">#</span>
+          <span style="flex:2">歌曲</span>
+          <span style="flex:1.5">歌手</span>
+          <span style="flex:1.5">专辑</span>
+          <span style="width:60px;text-align:right">时长</span>
+        </div>
+        <!-- 歌曲行 -->
+        <div style="display:flex;align-items:center;font-size:12px;color:#ccc;padding:8px 0;border-bottom:1px solid rgba(15,52,96,0.4)">
+          <span style="width:30px;color:#888">1</span>
+          <span style="flex:2;display:flex;align-items:center;gap:8px"><span style="color:#409EFF">▶</span> 晴天</span>
+          <span style="flex:1.5;color:#aaa">周杰伦</span>
+          <span style="flex:1.5;color:#aaa">叶惠美</span>
+          <span style="width:60px;text-align:right;color:#888">4:29</span>
+        </div>
+        <div style="display:flex;align-items:center;font-size:12px;color:#eee;padding:8px 0;border-bottom:1px solid rgba(15,52,96,0.4);background:rgba(64,158,255,0.1);border-radius:4px">
+          <span style="width:30px;color:#409EFF">▶</span>
+          <span style="flex:2;display:flex;align-items:center;gap:8px"><span>♪</span> 稻香</span>
+          <span style="flex:1.5;color:#aaa">周杰伦</span>
+          <span style="flex:1.5;color:#aaa">魔杰座</span>
+          <span style="width:60px;text-align:right;color:#888">3:43</span>
+        </div>
+        <div style="display:flex;align-items:center;font-size:12px;color:#ccc;padding:8px 0;border-bottom:1px solid rgba(15,52,96,0.4)">
+          <span style="width:30px;color:#888">3</span>
+          <span style="flex:2;display:flex;align-items:center;gap:8px">🎵 夜曲</span>
+          <span style="flex:1.5;color:#aaa">周杰伦</span>
+          <span style="flex:1.5;color:#aaa">十一月的萧邦</span>
+          <span style="width:60px;text-align:right;color:#888">3:46</span>
+        </div>
+      </div>
+      <!-- 右侧栏 280px -->
+      <div style="width:280px;background:#16213e;border-left:1px solid #0f3460;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;overflow-y:auto">
+        <div style="width:180px;height:180px;background:linear-gradient(135deg,#533483,#0f3460);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:48px;box-shadow:0 8px 24px rgba(0,0,0,0.4)">♫</div>
+        <div style="text-align:center;color:#eee">
+          <div style="font-size:16px;font-weight:bold">稻香</div>
+          <div style="font-size:12px;color:#aaa">周杰伦 · 魔杰座</div>
+        </div>
+        <div style="width:100%;font-size:10px;color:#888;line-height:1.6;text-align:center;height:120px;overflow-y:auto">
+          对这个世界如果你有太多的抱怨<br>
+          跌倒了就不敢继续往前走<br>
+          为什么人要这么的脆弱堕落<br>
+          <span style="color:#409EFF">请你打开电视看看...</span>
+        </div>
+      </div>
+    </div>
+    <!-- 底部播放栏 72px -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#0f3460;border-top:1px solid #1a1a2e;gap:16px">
+      <div style="display:flex;align-items:center;gap:10px;min-width:180px">
+        <div style="width:40px;height:40px;background:#533483;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px">♫</div>
+        <div style="font-size:11px;color:#eee">
+          <div style="font-weight:bold">稻香</div>
+          <div style="color:#aaa">周杰伦</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <span style="color:#aaa;font-size:16px">⏮</span>
+          <span style="color:#eee;font-size:24px">⏸</span>
+          <span style="color:#aaa;font-size:16px">⏭</span>
+          <span style="font-size:11px;color:#888">1:24 / 3:43</span>
+        </div>
+        <div style="width:100%;max-width:500px;height:4px;background:#1a1a2e;border-radius:2px;position:relative">
+          <div style="width:38%;height:100%;background:#409EFF;border-radius:2px"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;min-width:160px;justify-content:flex-end">
+        <span style="color:#aaa;font-size:12px">🔀</span>
+        <span style="color:#409EFF;font-size:12px">🔁</span>
+        <span style="color:#aaa;font-size:14px">🔊</span>
+        <div style="width:80px;height:3px;background:#1a1a2e;border-radius:2px">
+          <div style="width:70%;height:100%;background:#aaa;border-radius:2px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;gap:16px;margin-top:16px">
+  <div class="section" style="flex:1">
+    <h3>布局参数</h3>
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">左侧栏宽度</td><td style="padding:4px 8px;font-weight:bold">220px（可折叠）</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">右侧栏宽度</td><td style="padding:4px 8px;font-weight:bold">280px（可隐藏）</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">中间内容</td><td style="padding:4px 8px;font-weight:bold">flex:1 自适应</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">底部播放栏</td><td style="padding:4px 8px;font-weight:bold">固定 72px</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">最小窗口</td><td style="padding:4px 8px;font-weight:bold">900×600</td></tr>
+    </table>
+  </div>
+  <div class="section" style="flex:1">
+    <h3>各区域职责</h3>
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">左侧栏</td><td style="padding:4px 8px">用户信息、功能导航、歌单列表</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">中间内容</td><td style="padding:4px 8px">搜索栏、歌曲表格、歌单详情、&lt;router-view&gt;</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">右侧栏</td><td style="padding:4px 8px">专辑封面、歌词、当前歌曲信息</td></tr>
+      <tr style="border-bottom:1px solid #eee"><td style="padding:4px 8px">底部播放栏</td><td style="padding:4px 8px">播放控制、进度条、音量、播放模式</td></tr>
+    </table>
+  </div>
+</div>
