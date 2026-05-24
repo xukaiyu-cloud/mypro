@@ -1,0 +1,49 @@
+:root {
+  // ===== Light Theme (Apple Music style) =====
+  // Background
+  --bg-base: #f5f5f7;
+  --bg-panel: rgba(255, 255, 255, 0.72);
+  --bg-panel-strong: rgba(255, 255, 255, 0.88);
+  --bg-row-alt: rgba(0, 0, 0, 0.03);
+
+  // Primary colors
+  --color-primary: #1D566E;
+  --color-primary-light: #247089;
+  --color-secondary: #57adde;
+  --color-accent: #1D566E;
+  --accent-gradient: #1D566E;
+
+  // Borders
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-normal: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.16);
+
+  // Text
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #aeaeb2;
+  --text-accent: #1E50A2;
+  --text-bright: #333333;
+  --text-on-accent: #fff;
+
+  // Border radius (Apple-style unified)
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  // Shadows
+  --glow-accent: 0 0 20px rgba(29, 86, 110, 0.18);
+  --glow-strong: 0 0 30px rgba(29, 86, 110, 0.28);
+
+  // Misc
+  --color-success: #34c759;
+  --color-error: #ff3b30;
+  --color-white: #fff;
+  --sidebar-left-width: 220px;
+  --sidebar-right-width: 280px;
+  --player-bar-height: 72px;
+
+  // Typography
+  --font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}

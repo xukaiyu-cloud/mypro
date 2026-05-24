@@ -1,0 +1,6 @@
+﻿{
+  "aiProvider": "openai",
+  "aiApiKey": "sk-8f4c71f26b7241a0954f04e3be5df2c7",
+  "aiBaseUrl": "https://api.openai.com/v1",
+  "aiModel": "gpt-4o-mini"
+}
