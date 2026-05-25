@@ -3,14 +3,16 @@ import { ElMessage } from 'element-plus'
 import { usePlayerStore } from '../stores/player'
 import type { Song } from '../types/song'
 import { playApi } from '../api/play'
+import { getServerUrl } from '../config'
 
 let audio: HTMLAudioElement | null = null
 let lastKnownTime = 0
 let resolveSeq = 0
 
-function getAudio(): HTMLAudioElement {
+export function getAudio(): HTMLAudioElement {
   if (!audio) {
     audio = new Audio()
+    audio.crossOrigin = 'anonymous'
     audio.preload = 'auto'
     audio.playbackRate = 1
   }
@@ -35,8 +37,8 @@ function setupEvents(player: ReturnType<typeof usePlayerStore>) {
     }
   }
   a.onerror = () => {
-    ElMessage.error('播放失败，该歌曲可能受版权保护或需VIP')
-    player.pause()
+    ElMessage.error('鎾斁澶辫触锛岃姝屾洸鍙兘鍙楃増鏉冧繚鎶ゆ垨闇€VIP')
+    player.next()
   }
   a.onplay = () => {
     player.isPlaying = true
@@ -60,7 +62,7 @@ async function resolveUrl(song: NonNullable<ReturnType<typeof usePlayerStore>['c
 
   // Local file path: C:\... or /home/...
   if (song.filePath && /^[a-zA-Z]:[\\/]/.test(song.filePath)) {
-    return 'file:///' + song.filePath.replace(/\\/g, '/')
+    return `${getServerUrl()}/api/local/audio?path=${encodeURIComponent(song.filePath)}`
   }
 
   // Determine hash and platform
@@ -87,17 +89,17 @@ async function resolveUrl(song: NonNullable<ReturnType<typeof usePlayerStore>['c
         song.audioUrl = res.data.url
         return res.data.url
       }
-      console.warn('[resolveUrl] 返回空 URL:', { title: song.title, hash, platform })
+      console.warn('[resolveUrl] 杩斿洖绌?URL:', { title: song.title, hash, platform })
     } catch (e: unknown) {
       const err = e as { response?: { status?: number; data?: unknown }; message?: string }
-      console.error('[resolveUrl] 解析失败:', {
+      console.error('[resolveUrl] 瑙ｆ瀽澶辫触:', {
         title: song.title, hash, platform,
         status: err?.response?.status,
         msg: err?.response?.data || err?.message,
       })
     }
   } else {
-    console.warn('[resolveUrl] filePath 缺失:', { title: song.title, artist: song.artist, sourcePlatform: song.sourcePlatform, externalLink: song.externalLink })
+    console.warn('[resolveUrl] filePath 缂哄け:', { title: song.title, artist: song.artist, sourcePlatform: song.sourcePlatform, externalLink: song.externalLink })
   }
 
   return ''
@@ -123,9 +125,9 @@ export function useAudio() {
     if (seq !== resolveSeq) return
 
     if (!url) {
-      const platform = song.sourcePlatform || '未知平台'
-      ElMessage.warning(`无法获取播放链接（${platform}），该歌曲可能需要版权授权`)
-      player.pause()
+      const platform = song.sourcePlatform || '鏈煡骞冲彴'
+      ElMessage.warning(`鏃犳硶鑾峰彇鎾斁閾炬帴锛?{platform}锛夛紝璇ユ瓕鏇插彲鑳介渶瑕佺増鏉冩巿鏉僠`)
+      setTimeout(() => { if (player.currentSong?.filePath === song.filePath) player.next() }, 1000)
       return
     }
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, desktopCapturer } from 'electron'
 import { join } from 'path'
 import { spawn, ChildProcess } from 'child_process'
 
@@ -49,10 +49,35 @@ function createWindow(): void {
 
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
+    // Auto-open DevTools in dev mode to see errors
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Register F12 and Ctrl+Shift+I to toggle DevTools
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if ((input.key === 'F12' && !input.control && !input.shift && !input.alt && !input.meta) ||
+        (input.key === 'I' && input.control && input.shift && !input.alt && !input.meta)) {
+      mainWindow?.webContents.toggleDevTools()
+    }
+  })
 }
+
+
+// Audio capture for WebRTC broadcast
+ipcMain.handle('get-desktop-sources', async () => {
+  const sources = await desktopCapturer.getSources({
+    types: ['screen', 'window'],
+    thumbnailSize: { width: 1, height: 1 },
+    fetchWindowIcons: false,
+  })
+  return sources.map(s => ({ id: s.id, name: s.name, appIcon: null }))
+})
+
+ipcMain.handle('get-media-stream-id', async (_event, sourceId: string) => {
+  return sourceId
+})
 
 app.whenReady().then(() => {
   startServer()

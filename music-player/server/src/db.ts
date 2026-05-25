@@ -34,6 +34,7 @@ export async function initDatabase(): Promise<void> {
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     email TEXT NOT NULL,
+    avatar TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
   )`)
 
@@ -95,6 +96,11 @@ export async function initDatabase(): Promise<void> {
   db.run('CREATE INDEX IF NOT EXISTS idx_ph_user ON play_history(user_id)')
   db.run('CREATE INDEX IF NOT EXISTS idx_fr_user ON friends(user_id)')
   db.run('CREATE INDEX IF NOT EXISTS idx_fr_friend ON friends(friend_id)')
+
+  persist()
+
+  // Migrations for existing databases
+  try { db.run(`ALTER TABLE user ADD COLUMN avatar TEXT DEFAULT ''`) } catch {}
 
   persist()
   dbReady = true

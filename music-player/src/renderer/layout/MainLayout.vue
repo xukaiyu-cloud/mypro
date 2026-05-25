@@ -1,5 +1,5 @@
 <template>
-  <div class="main-layout">
+  <div class="main-layout" :class="{ 'live-mode': isLiveRoute }">
     <TitleBar />
     <div class="main-body">
       <SidebarLeft class="sidebar-left" />
@@ -10,20 +10,24 @@
           </transition>
         </router-view>
       </ContentCenter>
-      <SidebarRight class="sidebar-right" />
+      <SidebarRight v-if="!isLiveRoute" class="sidebar-right" />
     </div>
     <PlayerBar class="player-bar" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import TitleBar from '../components/TitleBar.vue'
 import SidebarLeft from './SidebarLeft.vue'
 import ContentCenter from './ContentCenter.vue'
 import SidebarRight from './SidebarRight.vue'
 import PlayerBar from './PlayerBar.vue'
-</script>
 
+const route = useRoute()
+const isLiveRoute = computed(() => route.name === 'LiveRoom')
+</script>
 <style scoped>
 .main-layout {
   display: flex;
@@ -70,5 +74,10 @@ import PlayerBar from './PlayerBar.vue'
   flex-shrink: 0;
   position: relative;
   z-index: 1;
+}
+
+/* Live mode: hide right sidebar, content takes full remaining width */
+.live-mode .sidebar-left {
+  width: var(--sidebar-left-width);
 }
 </style>

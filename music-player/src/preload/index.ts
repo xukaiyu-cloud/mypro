@@ -16,4 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimizeWindow: () => ipcRenderer.send('window:minimize'),
   maximizeWindow: () => ipcRenderer.send('window:maximize'),
   closeWindow: () => ipcRenderer.send('window:close'),
+  // WebRTC audio broadcast
+  getDesktopSources: () => ipcRenderer.invoke('get-desktop-sources'),
+  getMediaStreamId: (sourceId: string) => ipcRenderer.invoke('get-media-stream-id', sourceId),
 })

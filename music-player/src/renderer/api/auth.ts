@@ -14,4 +14,7 @@ export const authApi = {
 
   getProfile: () =>
     http.get<ApiResponse<UserInfo>>('/user/profile').then(r => r.data),
+
+  updateAvatar: (avatar: string) =>
+    http.post<ApiResponse<{ avatar: string }>>('/user/avatar', { avatar }).then(r => r.data),
 }

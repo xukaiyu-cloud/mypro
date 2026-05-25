@@ -1,12 +1,14 @@
 import { watch } from 'vue'
 import { usePlayerStore } from '../stores/player'
 import { playApi } from '../api/play'
+import { getServerUrl } from '../config'
 
 let preloadAudio: HTMLAudioElement | null = null
 
 function getPreloader(): HTMLAudioElement {
   if (!preloadAudio) {
     preloadAudio = new Audio()
+    preloadAudio.crossOrigin = 'anonymous'
     preloadAudio.preload = 'auto'
     preloadAudio.volume = 0
   }
@@ -29,7 +31,7 @@ async function resolveUrl(filePath: string, albumId: string, sourcePlatform: str
 
   if (!hash) return ''
   if (/^[a-zA-Z]:[\\/]/.test(hash)) {
-    return 'file:///' + hash.replace(/\\/g, '/')
+    return `${getServerUrl()}/api/local/audio?path=${encodeURIComponent(hash)}`
   }
   try {
     const res = await playApi.resolveUrl(hash, albumId, platform)

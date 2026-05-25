@@ -46,6 +46,20 @@
           <span v-if="store.isHost" class="host-tag">房主</span>
         </div>
         <div class="header-actions">
+          <!-- Host broadcast control -->
+          <el-button v-if="store.isHost && !store.isBroadcasting" size="small" type="success" @click="store.startBroadcast()">
+            开始广播
+          </el-button>
+          <el-button v-if="store.isHost && store.isBroadcasting" size="small" type="warning" @click="store.stopBroadcast()">
+            停止广播
+          </el-button>
+          <!-- Viewer listen control -->
+          <el-button v-if="!store.isHost && store.isBroadcasting" size="small" type="primary" @click="store.joinHostBroadcast()">
+            收听主播
+          </el-button>
+          <el-button v-if="!store.isHost" size="small" type="warning" @click="store.leaveHostBroadcast()">
+            断开收听
+          </el-button>
           <el-button v-if="store.isHost" size="small" type="warning" @click="showInvite = true">
             邀请好友
           </el-button>
@@ -72,7 +86,10 @@
         <!-- Center: now playing + playlist -->
         <div class="center-panel">
           <div class="now-playing glass-panel">
-            <h4>正在播放</h4>
+            <h4>
+              正在播放
+              <span v-if="store.isBroadcasting" class="broadcast-badge" title="主播正在广播音频">📡 广播中</span>
+            </h4>
             <div v-if="store.currentRoom.currentSong" class="song-info">
               <div class="song-cover" v-if="store.currentRoom.currentSong.coverUrl">
                 <img :src="store.currentRoom.currentSong.coverUrl" alt="cover" />
@@ -119,8 +136,9 @@
         </div>
       </div>
 
-      <div v-if="store.isHost" class="host-hint">
-        你是房主，播放歌曲时会自动同步给所有成员
+
+      <div class="host-hint">
+        你是房主，房间成员可看到你正在播放的歌曲
       </div>
     </div>
 
@@ -132,6 +150,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue'
 import { useListenStore, type SongInfo } from '../stores/listen'
+import { useAuthStore } from '../stores/auth'
 import { usePlayerStore } from '../stores/player'
 import { useFriendsStore } from '../stores/friends'
 import { usePlaylistStore } from '../stores/playlist'
@@ -143,6 +162,7 @@ import { ElMessage } from 'element-plus'
 import { songToSongInfo } from '../utils/song'
 
 const store = useListenStore()
+const authStore = useAuthStore()
 const player = usePlayerStore()
 const friendsStore = useFriendsStore()
 const playlistStore = usePlaylistStore()
@@ -172,6 +192,7 @@ const visibleRoomLyrics = computed(() => {
 
 const friends = computed(() => friendsStore.friends)
 const playlists = computed(() => playlistStore.localPlaylists as { id: number | string; name: string; songs: Song[] }[])
+
 
 onMounted(() => {
   store.connect()
@@ -216,6 +237,7 @@ watch(() => player.currentTime, (time) => {
   store.setRoomPlayback(player.isPlaying, time)
   store.syncToRoom('seek')
 })
+
 
 function doJoin() {
   if (!joinRoomId.value.trim()) {
@@ -361,6 +383,12 @@ h4 { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
 .pl-title { flex: 1; }
 .pl-artist { color: var(--text-secondary); width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+
+.broadcast-badge {
+  font-size: 11px; color: #16a34a; background: rgba(22,163,74,0.1);
+  padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+  font-weight: normal;
+}
 .host-hint {
   margin-top: 12px; padding: 10px;
   background: rgba(30,80,162,0.06); border-radius: var(--radius-sm);

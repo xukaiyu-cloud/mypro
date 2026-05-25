@@ -21,7 +21,6 @@
     "files": [
       "out/**/*",
       "server/**/*",
-      "!server/node_modules",
       "node_modules/**/*"
     ],
     "extraResources": [
@@ -34,7 +33,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "resources/icon.ico"
@@ -45,11 +46,15 @@
       "createDesktopShortcut": true
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "resources/icon.icns"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "icon": "resources/icon.png"
     }
   },

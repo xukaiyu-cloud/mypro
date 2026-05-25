@@ -16,6 +16,7 @@ const items = [
   { label: '导入歌单', to: '/import' },
   { label: '好友', to: '/friends' },
   { label: '一起听', to: '/listen' },
+  { label: '🎙️ 直播', to: '/live' },
   { label: '同步管理', to: '/sync' },
   { label: '设置', to: '/settings' },
 ]

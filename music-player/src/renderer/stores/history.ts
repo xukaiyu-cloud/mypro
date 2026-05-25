@@ -4,6 +4,7 @@ import type { Song } from '../types/song'
 import { useAuthStore } from './auth'
 
 const MAX_HISTORY = 200
+let saveTimer: ReturnType<typeof setTimeout> | null = null
 
 function storageKey(): string {
   const uid = useAuthStore().userInfo?.id ?? 0
@@ -19,7 +20,10 @@ export const useHistoryStore = defineStore('history', () => {
   }
 
   function saveHistory() {
-    localStorage.setItem(storageKey(), JSON.stringify(history.value))
+    if (saveTimer) clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => {
+      localStorage.setItem(storageKey(), JSON.stringify(history.value))
+    }, 300)
   }
 
   function addToHistory(song: Song) {

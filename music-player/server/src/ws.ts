@@ -26,6 +26,7 @@ interface RoomState {
   currentSong: SongInfo | null
   currentTime: number
   isPlaying: boolean
+  isBroadcasting: boolean
 }
 
 const rooms = new Map<string, RoomState>()
@@ -61,10 +62,21 @@ export function initSocket(server: HttpServer): Server {
     console.log(`[WS] connected: ${socket.id}`)
 
     socket.on('register', (data: { userId: number }) => {
+      // Kick existing sockets for the same user (prevent duplicate login)
+      const existing = userSockets.get(data.userId)
+      if (existing && existing.size > 0) {
+        existing.forEach(sid => {
+          if (sid !== socket.id) {
+            io.to(sid).emit('force_logout', { reason: '????????????' })
+            const s = io.sockets.sockets.get(sid)
+            if (s) s.disconnect(true)
+          }
+        })
+        existing.clear()
+      }
       registerUser(data.userId, socket.id)
       socket.emit('registered')
     })
-
     // ---- Room lifecycle ----
 
     socket.on('room:create', (data: { userId: number; username: string }) => {
@@ -78,6 +90,7 @@ export function initSocket(server: HttpServer): Server {
         currentSong: null,
         currentTime: 0,
         isPlaying: false,
+        isBroadcasting: false,
       }
       rooms.set(roomId, state)
       socket.join(roomId)
@@ -185,6 +198,25 @@ export function initSocket(server: HttpServer): Server {
       })
     })
 
+    // ---- Danmaku ----
+
+    socket.on('room:danmaku', (data: { roomId: string; userId: number; username: string; text: string }) => {
+      const room = rooms.get(data.roomId)
+      if (!room || !room.members.find(m => m.userId === data.userId)) return
+      io.to(data.roomId).emit('room:danmaku', {
+        username: data.username,
+        text: data.text,
+      })
+    })
+
+    // ---- Like ----
+
+    socket.on('room:like', (data: { roomId: string; userId: number }) => {
+      const room = rooms.get(data.roomId)
+      if (!room || !room.members.find(m => m.userId === data.userId)) return
+      io.to(data.roomId).emit('room:like', { userId: data.userId })
+    })
+
     // ---- Playlist management ----
 
     socket.on('room:addSongs', (data: { roomId: string; userId: number; songs: SongInfo[] }) => {
@@ -213,6 +245,53 @@ export function initSocket(server: HttpServer): Server {
 
     socket.on('friends:online', (data: { friendIds: number[] }) => {
       socket.emit('friends:online', getOnlineFriends(data.friendIds))
+    })
+
+    // ---- WebRTC signaling relay ----
+
+    socket.on('broadcast:start', (data: { roomId: string }) => {
+      const room = rooms.get(data.roomId)
+      if (room) room.isBroadcasting = true
+      socket.to(data.roomId).emit('broadcast:start')
+    })
+
+    socket.on('broadcast:stop', (data: { roomId: string }) => {
+      const room = rooms.get(data.roomId)
+      if (room) room.isBroadcasting = false
+      socket.to(data.roomId).emit('broadcast:stop')
+    })
+
+    socket.on('broadcast:offer', (data: { roomId: string; viewerSocketId: string; sdp: unknown }) => {
+      io.to(data.viewerSocketId).emit('broadcast:offer', {
+        hostSocketId: socket.id,
+        sdp: data.sdp,
+      })
+    })
+
+    socket.on('broadcast:answer', (data: { roomId: string; hostSocketId: string; sdp: unknown }) => {
+      io.to(data.hostSocketId).emit('broadcast:answer', {
+        viewerSocketId: socket.id,
+        sdp: data.sdp,
+      })
+    })
+
+    socket.on('broadcast:ice', (data: { roomId: string; targetSocketId: string; candidate: unknown }) => {
+      io.to(data.targetSocketId).emit('broadcast:ice', {
+        fromSocketId: socket.id,
+        candidate: data.candidate,
+      })
+    })
+
+    socket.on('broadcast:join', (data: { roomId: string }) => {
+      const room = rooms.get(data.roomId)
+      if (!room) return
+      // Find host's socket and notify them a viewer wants to join
+      const hostMember = room.members.find(m => m.userId === room.hostId)
+      if (hostMember) {
+        io.to(hostMember.socketId).emit('broadcast:join', {
+          viewerSocketId: socket.id,
+        })
+      }
     })
 
     // ---- Leave ----

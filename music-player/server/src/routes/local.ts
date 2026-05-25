@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { readdirSync, statSync } from 'fs'
+import { readdirSync, statSync, createReadStream, existsSync } from 'fs'
 import { extname, join, basename } from 'path'
 import { authMiddleware } from '../middleware/auth'
 import { queryAll, execute } from '../db'
@@ -128,6 +128,34 @@ router.get('/songs', (_req: Request, res: Response) => {
   } catch (e) {
     console.error('[local/songs] error:', e)
     res.status(500).json({ code: 500, message: '获取失败', data: null })
+  }
+})
+
+
+// GET /api/local/audio — Serve local audio file with proper CORS for WebRTC captureStream
+router.get('/audio', (req: Request, res: Response) => {
+  try {
+    const filePath = req.query.path as string
+    if (!filePath || !existsSync(filePath)) {
+      res.status(404).json({ code: 404, message: '文件不存在', data: null })
+      return
+    }
+    const ext = extname(filePath).toLowerCase()
+    const mimeMap: Record<string, string> = {
+      '.mp3': 'audio/mpeg', '.flac': 'audio/flac', '.wav': 'audio/wav',
+      '.ogg': 'audio/ogg', '.aac': 'audio/aac', '.m4a': 'audio/mp4',
+      '.wma': 'audio/x-ms-wma',
+    }
+    const mime = mimeMap[ext] || 'audio/mpeg'
+    res.set({
+      'Content-Type': mime,
+      'Accept-Ranges': 'bytes',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-cache',
+    })
+    createReadStream(filePath).pipe(res)
+  } catch {
+    res.status(500).json({ code: 500, message: '读取文件失败', data: null })
   }
 })
 

@@ -49,7 +49,7 @@ router.post('/login', async (req: Request, res: Response) => {
       code: 200, message: '登录成功',
       data: {
         token,
-        user: { id: user.id, username: user.username, email: user.email, createdAt: user.created_at },
+        user: { id: user.id, username: user.username, email: user.email, avatar: (user as any).avatar || '', createdAt: user.created_at },
       },
     })
   } catch (e) {
@@ -64,7 +64,7 @@ router.post('/logout', authMiddleware, (_req: Request, res: Response) => {
 router.get('/user/profile', authMiddleware, (req: Request, res: Response) => {
   try {
     const user = queryOne<{ id: number; username: string; email: string; created_at: string }>(
-      'SELECT id, username, email, created_at FROM user WHERE id = ?',
+      'SELECT id, username, email, avatar, created_at FROM user WHERE id = ?',
       [(req as Request & { userId: number }).userId]
     )
     if (!user) {
@@ -73,8 +73,24 @@ router.get('/user/profile', authMiddleware, (req: Request, res: Response) => {
     }
     res.json({
       code: 200, message: 'ok',
-      data: { id: user.id, username: user.username, email: user.email, createdAt: user.created_at },
+      data: { id: user.id, username: user.username, email: user.email, avatar: (user as any).avatar || '', createdAt: user.created_at },
     })
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '服务器错误', data: null })
+  }
+})
+
+// Upload avatar (base64)
+router.post('/user/avatar', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { avatar } = req.body
+    if (!avatar || typeof avatar !== 'string') {
+      res.status(400).json({ code: 400, message: '请提供头像数据', data: null })
+      return
+    }
+    const userId = (req as Request & { userId: number }).userId
+    execute('UPDATE user SET avatar = ? WHERE id = ?', [avatar, userId])
+    res.json({ code: 200, message: '头像更新成功', data: { avatar } })
   } catch (e) {
     res.status(500).json({ code: 500, message: '服务器错误', data: null })
   }

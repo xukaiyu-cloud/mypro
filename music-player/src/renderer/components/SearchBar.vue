@@ -82,11 +82,15 @@ const isNaturalLanguage = computed(() => {
   return naturalPatterns.some(p => p.test(q))
 })
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 function highlightMatch(text: string): string {
   const q = query.value.trim()
-  if (!q) return text
+  if (!q) return escapeHtml(text)
+  const safeText = escapeHtml(text)
   const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<b>$1</b>')
+  return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<b>$1</b>')
 }
 
 function onInput() { 

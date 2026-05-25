@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed, watch } from 'vue'
 import type { Song } from '../types/song'
 import { useAuthStore } from './auth'
 
@@ -20,9 +20,13 @@ export const useFavoritesStore = defineStore('favorites', () => {
     localStorage.setItem(storageKey(), JSON.stringify(songs.value))
   }
 
+  // Rebuild lookup Set reactively — O(1) lookup per call, O(n) rebuild on songs change
+  const favoriteIds = shallowRef(new Set<number>(songs.value.map(s => s.id)))
+  watch(songs, (s) => { favoriteIds.value = new Set(s.map(x => x.id)) }, { deep: false, immediate: false })
+
   const isFavorited = computed(() => {
-    const set = new Set(songs.value.map(s => s.id))
-    return (songId: number) => set.has(songId)
+    const ids = favoriteIds.value // track shallowRef
+    return (songId: number) => ids.has(songId)
   })
 
   function toggleFavorite(song: Song) {
@@ -43,5 +47,5 @@ export const useFavoritesStore = defineStore('favorites', () => {
   // Eager-load
   loadFavorites()
 
-  return { songs, isFavorited, toggleFavorite, removeFavorite, loadFavorites }
+  return { songs, favoriteIds, isFavorited, toggleFavorite, removeFavorite, loadFavorites }
 })

@@ -36,6 +36,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../pages/ListenRoom.vue'),
       },
       {
+        path: 'live',
+        name: 'LiveRoom',
+        component: () => import('../pages/LiveRoom.vue'),
+      },
+      {
         path: 'history',
         name: 'History',
         component: () => import('../pages/HistoryPage.vue'),

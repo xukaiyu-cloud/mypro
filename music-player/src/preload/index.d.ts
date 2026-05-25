@@ -10,6 +10,8 @@ export interface ElectronAPI {
   minimizeWindow: () => void
   maximizeWindow: () => void
   closeWindow: () => void
+  getDesktopSources: () => Promise<Electron.DesktopCapturerSource[]>
+  getMediaStreamId: (sourceId: string) => Promise<string>
 }
 
 declare global {
@@ -17,5 +19,3 @@ declare global {
     electronAPI: ElectronAPI
   }
 }
-
-export {}
